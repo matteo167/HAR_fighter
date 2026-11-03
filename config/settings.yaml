@@ -1,0 +1,48 @@
+# Configuração geral do pipeline. Carregado por eldorado_fighter.utils.config.
+# Cada seção corresponde a um componente substituível (padrão Strategy) do
+# pipeline — trocar a implementação é alterar o campo `backend`/`architecture`
+# aqui, sem tocar no código.
+
+capture:
+  backend: webcam        # webcam | video_file (futuro)
+  device_index: 0
+  width: 640
+  height: 480
+  fps: 30
+
+pose:
+  backend: yolov8          # único backend hoje; interface permite trocar depois
+  model_path: yolov8n-pose.pt   # n (rápido) .. x (preciso); baixado automaticamente pela Ultralytics
+  confidence_threshold: 0.5
+  device: cpu              # cpu | mps | cuda:0
+
+features:
+  sequence_length: 30     # nº de frames (janela) usados pelo classificador
+  stride: 1                # passo do sliding window
+  feature_mode: full       # full | full_plus_tilt | tilt_only (ver features/tilt.py)
+  use_velocity: true       # anexa diferença quadro-a-quadro (ver features/motion.py)
+
+classification:
+  backend: tensorflow      # tensorflow | heuristic (fallback sem modelo treinado)
+  model_path: data/models/latest/model.keras
+  confidence_threshold: 0.6
+
+actions:
+  input_backend: keyboard   # keyboard (pynput) | gamepad (futuro, não suportado no macOS)
+  cooldown_seconds: 0.08    # intervalo mínimo entre ações instantâneas repetidas
+
+dataset:
+  raw_videos_dir: data/raw_videos
+  keypoints_dir: data/keypoints
+  samples_per_movement: 40
+  clip_seconds: 2.0
+
+training:
+  architecture: mlp_mixer   # lstm | dense (baseline) | fnet | mlp_mixer | transformer
+  epochs: 60
+  batch_size: 16
+  validation_split: 0.2
+  output_dir: data/models
+
+logging:
+  level: INFO

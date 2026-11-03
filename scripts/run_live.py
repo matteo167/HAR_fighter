@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+"""Executa o pipeline em tempo real: câmera -> keypoints -> classificação
+-> input no jogo.
+
+O jogo deve estar com a janela em foco e configurado para aceitar as teclas
+definidas em config/movements.yaml (game_keys).
+
+Uma janela mostra a câmera com os keypoints e o movimento detectado
+(ESQUERDA/DIREITA ou nome do movimento) em tempo real; use --no-preview
+para desativar.
+
+Uso:
+    python scripts/run_live.py
+    python scripts/run_live.py --no-preview
+"""
+
+from __future__ import annotations
+
+import argparse
+import logging
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from eldorado_fighter.actions.action_mapper import ActionMapper
+from eldorado_fighter.actions.keyboard_backend import KeyboardInputBackend
+from eldorado_fighter.capture.webcam_source import WebcamSource
+from eldorado_fighter.classification.movements import MovementRegistry
+from eldorado_fighter.classification.tf_classifier import TensorFlowMovementClassifier
+from eldorado_fighter.features.motion import append_velocity
+from eldorado_fighter.features.sequence_buffer import SequenceBuffer
+from eldorado_fighter.features.tilt import build_feature_fn
+from eldorado_fighter.pipeline.events import EventBus
+from eldorado_fighter.pipeline.realtime_pipeline import RealtimePipeline
+from eldorado_fighter.pose.yolo_estimator import YoloPoseEstimator
+from eldorado_fighter.utils.config import load_settings
+from eldorado_fighter.utils.logging_setup import setup_logging
+
+logger = logging.getLogger(__name__)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--no-preview", action="store_true", help="Não abrir a janela com vídeo + keypoints em tempo real"
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    settings = load_settings()
+    setup_logging(settings["logging"]["level"])
+
+    registry = MovementRegistry.from_config()
+
+    frame_source = WebcamSource(
+        device_index=settings["capture"]["device_index"],
+        width=settings["capture"]["width"],
+        height=settings["capture"]["height"],
+        fps=settings["capture"]["fps"],
+    )
+    pose_estimator = YoloPoseEstimator(
+        model_path=settings["pose"]["model_path"],
+        confidence_threshold=settings["pose"]["confidence_threshold"],
+        device=settings["pose"]["device"],
+    )
+    sequence_buffer = SequenceBuffer(sequence_length=settings["features"]["sequence_length"])
+    classifier = TensorFlowMovementClassifier(
+        model_path=Path(settings["classification"]["model_path"]),
+        registry=registry,
+    )
+
+    input_backend = KeyboardInputBackend()
+    action_mapper = ActionMapper(
+        input_backend=input_backend,
+        cooldown_seconds=settings["actions"]["cooldown_seconds"],
+    )
+
+    event_bus = EventBus()
+    event_bus.subscribe("movement_detected", action_mapper.on_movement_detected)
+
+    pipeline = RealtimePipeline(
+        frame_source=frame_source,
+        pose_estimator=pose_estimator,
+        sequence_buffer=sequence_buffer,
+        classifier=classifier,
+        event_bus=event_bus,
+        confidence_threshold=settings["classification"]["confidence_threshold"],
+        feature_fn=build_feature_fn(settings["features"].get("feature_mode", "full")),
+        window_fn=append_velocity if settings["features"].get("use_velocity", False) else None,
+        show_preview=not args.no_preview,
+    )
+
+    logger.info("Iniciando pipeline em tempo real. Ctrl+C para parar.")
+    try:
+        pipeline.run()
+    except KeyboardInterrupt:
+        pipeline.stop()
+    finally:
+        pose_estimator.close()
+
+
+if __name__ == "__main__":
+    main()

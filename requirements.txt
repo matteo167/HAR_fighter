@@ -1,0 +1,8 @@
+opencv-python>=4.9
+ultralytics>=8.1
+numpy>=1.26,<2.0
+pyyaml>=6.0
+pynput>=1.7
+scikit-learn>=1.4
+tensorflow>=2.16
+keras-nlp>=0.32

@@ -1,0 +1,25 @@
+# Ambiente Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# macOS
+.DS_Store
+
+# Dados do projeto
+# Vídeos brutos são grandes — não versionar
+data/raw_videos/*
+!data/raw_videos/.gitkeep
+
+# Modelos treinados/baixados — não versionar
+data/models/*
+!data/models/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+
+# Pesos de modelos baixados automaticamente (Ultralytics)
+*.pt

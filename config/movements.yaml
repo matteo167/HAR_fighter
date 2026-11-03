@@ -1,0 +1,80 @@
+# Catálogo de movimentos reconhecidos pelo sistema.
+# Este arquivo é a fonte única de verdade dos movimentos: para adicionar um
+# novo movimento no futuro (ex.: "soco especial", "defesa"), basta adicionar
+# uma entrada aqui — nenhum código precisa ser alterado (Open/Closed Principle).
+#
+# category:
+#   - direction: movimentos de deslocamento (podem ficar "segurados")
+#   - stance:    posturas (podem ficar "seguradas")
+#   - attack:    ações instantâneas (tap, não seguram tecla)
+#
+# game_keys: teclas que o backend de input deve emular para o emulador/jogo.
+# hold: true  -> a tecla é pressionada enquanto o movimento for detectado
+# hold: false -> a tecla é "tocada" (press + release rápido) a cada detecção
+
+movements:
+  - name: idle
+    category: stance
+    hold: false
+    game_keys: []
+    description: "Jogador parado, posição neutra."
+
+  - name: walk_right
+    category: direction
+    hold: true
+    game_keys: ["right"]
+    description: "Caminhar para a direita."
+
+  - name: walk_left
+    category: direction
+    hold: true
+    game_keys: ["left"]
+    description: "Caminhar para a esquerda."
+
+  - name: crouch
+    category: stance
+    hold: true
+    game_keys: ["down"]
+    description: "Agachado."
+
+  - name: jump
+    category: attack
+    hold: false
+    game_keys: ["up"]
+    description: "Pulo."
+
+  - name: punch_light
+    category: attack
+    hold: false
+    game_keys: ["a"]
+    description: "Soco fraco (jab)."
+
+  - name: punch_medium
+    category: attack
+    hold: false
+    game_keys: ["s"]
+    description: "Soco médio."
+
+  - name: punch_heavy
+    category: attack
+    hold: false
+    game_keys: ["d"]
+    description: "Soco forte."
+
+  - name: kick_light
+    category: attack
+    hold: false
+    game_keys: ["z"]
+    description: "Chute fraco."
+
+  - name: kick_medium
+    category: attack
+    hold: false
+    game_keys: ["x"]
+    description: "Chute médio."
+
+  - name: kick_heavy
+    category: attack
+    hold: false
+    game_keys: ["c"]
+    description: "Chute forte."
