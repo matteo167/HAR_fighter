@@ -1,4 +1,4 @@
-# Configuração geral do pipeline. Carregado por eldorado_fighter.utils.config.
+# Configuração geral do pipeline. Carregado por har_fighter.utils.config.
 # Cada seção corresponde a um componente substituível (padrão Strategy) do
 # pipeline — trocar a implementação é alterar o campo `backend`/`architecture`
 # aqui, sem tocar no código.

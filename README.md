@@ -1,4 +1,4 @@
-# Eldorado Fighter
+# HAR Fighter
 
 Controle de personagens de **Street Fighter II** usando visão computacional:
 uma câmera observa os movimentos do jogador, dois modelos de Machine
@@ -76,7 +76,7 @@ uma nova entrada no eixo certo desse arquivo + amostras de dataset +
 retreino.
 
 Cada amostra do dataset carrega um label por eixo (ver
-[`dataset/schema.py`](src/eldorado_fighter/dataset/schema.py)). Isso
+[`dataset/schema.py`](src/har_fighter/dataset/schema.py)). Isso
 significa que o dataset gravado hoje (cada clipe variando só um eixo, o
 outro fica `idle`) já treina os dois modelos — mas o reconhecimento de
 **combos** (ex.: andar socando) só generaliza bem se houver amostras
@@ -120,7 +120,7 @@ pipeline é isolado por uma interface:
 ## Estrutura do projeto
 
 ```
-Eldorado_fighter/
+HAR_fighter/
 ├── README.md
 ├── PROJECT_LOG.md              # histórico de etapas executadas
 ├── requirements.txt
@@ -128,7 +128,7 @@ Eldorado_fighter/
 ├── config/
 │   ├── settings.yaml           # config geral (qual backend usar em cada etapa)
 │   └── movements.yaml          # catálogo de classes por eixo (fonte única de verdade)
-├── src/eldorado_fighter/
+├── src/har_fighter/
 │   ├── capture/                # FrameSource: webcam / arquivo de vídeo
 │   ├── pose/                   # PoseEstimator: YOLOv8-Pose
 │   ├── features/               # normalização de landmarks + buffer de sequência
@@ -161,7 +161,7 @@ ser mais antigo — use `python3.12` ou a versão equivalente do Homebrew).
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-pip install -e .          # torna o pacote eldorado_fighter importável pelos scripts
+pip install -e .          # torna o pacote har_fighter importável pelos scripts
 ```
 
 Notas específicas do macOS:

@@ -20,8 +20,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import numpy as np
 
-from eldorado_fighter.dataset.schema import KeypointSample, save_sample
-from eldorado_fighter.utils.logging_setup import setup_logging
+from har_fighter.dataset.schema import KeypointSample, save_sample
+from har_fighter.utils.logging_setup import setup_logging
 
 logger = logging.getLogger(__name__)
 

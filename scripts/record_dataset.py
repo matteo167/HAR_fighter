@@ -27,12 +27,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from eldorado_fighter.capture.webcam_source import WebcamSource
-from eldorado_fighter.classification.movements import MovementRegistry
-from eldorado_fighter.dataset.recorder import DatasetRecorder
-from eldorado_fighter.pose.yolo_estimator import YoloPoseEstimator
-from eldorado_fighter.utils.config import load_settings
-from eldorado_fighter.utils.logging_setup import setup_logging
+from har_fighter.capture.webcam_source import WebcamSource
+from har_fighter.classification.movements import MovementRegistry
+from har_fighter.dataset.recorder import DatasetRecorder
+from har_fighter.pose.yolo_estimator import YoloPoseEstimator
+from har_fighter.utils.config import load_settings
+from har_fighter.utils.logging_setup import setup_logging
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-# Log do projeto — Eldorado Fighter
+# Log do projeto — HAR Fighter
 
 Registro cronológico de cada etapa executada. Para a visão de arquitetura e
 instruções de uso, ver [`README.md`](README.md).
@@ -8,7 +8,7 @@ instruções de uso, ver [`README.md`](README.md).
 ## 2026-11-03 — Etapa 0: Setup inicial do projeto
 
 **O que foi feito:**
-- Criada a estrutura completa de diretórios do projeto (`src/eldorado_fighter`,
+- Criada a estrutura completa de diretórios do projeto (`src/har_fighter`,
   `config/`, `scripts/`, `data/`, `tests/`).
 - Definido o catálogo inicial de movimentos em `config/movements.yaml`:
   `idle`, `walk_left`, `walk_right`, `crouch`, `jump`, `punch_light`,

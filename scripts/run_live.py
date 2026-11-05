@@ -23,19 +23,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from eldorado_fighter.actions.action_mapper import ActionMapper
-from eldorado_fighter.actions.keyboard_backend import KeyboardInputBackend
-from eldorado_fighter.capture.webcam_source import WebcamSource
-from eldorado_fighter.classification.movements import MovementRegistry
-from eldorado_fighter.classification.tf_classifier import TensorFlowMovementClassifier
-from eldorado_fighter.features.motion import append_velocity
-from eldorado_fighter.features.sequence_buffer import SequenceBuffer
-from eldorado_fighter.features.tilt import build_feature_fn
-from eldorado_fighter.pipeline.events import EventBus
-from eldorado_fighter.pipeline.realtime_pipeline import RealtimePipeline
-from eldorado_fighter.pose.yolo_estimator import YoloPoseEstimator
-from eldorado_fighter.utils.config import load_settings
-from eldorado_fighter.utils.logging_setup import setup_logging
+from har_fighter.actions.action_mapper import ActionMapper
+from har_fighter.actions.keyboard_backend import KeyboardInputBackend
+from har_fighter.capture.webcam_source import WebcamSource
+from har_fighter.classification.movements import MovementRegistry
+from har_fighter.classification.tf_classifier import TensorFlowMovementClassifier
+from har_fighter.features.motion import append_velocity
+from har_fighter.features.sequence_buffer import SequenceBuffer
+from har_fighter.features.tilt import build_feature_fn
+from har_fighter.pipeline.events import EventBus
+from har_fighter.pipeline.realtime_pipeline import RealtimePipeline
+from har_fighter.pose.yolo_estimator import YoloPoseEstimator
+from har_fighter.utils.config import load_settings
+from har_fighter.utils.logging_setup import setup_logging
 
 logger = logging.getLogger(__name__)
 
