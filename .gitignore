@@ -12,6 +12,7 @@ __pycache__/
 # Vídeos brutos são grandes — não versionar
 data/raw_videos/*
 !data/raw_videos/.gitkeep
+data/obsoleto/v1/raw_videos/*
 
 # Modelos treinados/baixados — não versionar
 data/models/*
