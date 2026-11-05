@@ -27,7 +27,12 @@ def load_settings(path: Path | None = None) -> dict[str, Any]:
     return load_yaml(path or CONFIG_DIR / "settings.yaml")
 
 
-def load_movements(path: Path | None = None) -> list[dict[str, Any]]:
-    """Carrega a lista de movimentos definida em config/movements.yaml."""
+def load_axis(axis: str, path: Path | None = None) -> list[dict[str, Any]]:
+    """Carrega a lista de classes de um eixo ("movement" ou "action")
+    definida em config/movements.yaml.
+    """
     data = load_yaml(path or CONFIG_DIR / "movements.yaml")
-    return data.get("movements", [])
+    axes = data.get("axes", {})
+    if axis not in axes:
+        raise KeyError(f"Eixo '{axis}' não encontrado em movements.yaml. Opções: {list(axes)}")
+    return axes[axis]

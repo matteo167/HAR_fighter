@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Executa o pipeline em tempo real: câmera -> keypoints -> classificação
--> input no jogo.
+(dois eixos simultâneos, movement + action) -> input no jogo.
 
 O jogo deve estar com a janela em foco e configurado para aceitar as teclas
 definidas em config/movements.yaml (game_keys).
 
-Uma janela mostra a câmera com os keypoints e o movimento detectado
-(ESQUERDA/DIREITA ou nome do movimento) em tempo real; use --no-preview
+Uma janela mostra a câmera com os keypoints e as duas classes detectadas
+(uma linha por eixo: movimentação e ação) em tempo real; use --no-preview
 para desativar.
 
 Uso:
@@ -53,7 +53,8 @@ def main() -> None:
     settings = load_settings()
     setup_logging(settings["logging"]["level"])
 
-    registry = MovementRegistry.from_config()
+    axes = ("movement", "action")
+    registries = {axis: MovementRegistry.from_config(axis) for axis in axes}
 
     frame_source = WebcamSource(
         device_index=settings["capture"]["device_index"],
@@ -67,10 +68,16 @@ def main() -> None:
         device=settings["pose"]["device"],
     )
     sequence_buffer = SequenceBuffer(sequence_length=settings["features"]["sequence_length"])
-    classifier = TensorFlowMovementClassifier(
-        model_path=Path(settings["classification"]["model_path"]),
-        registry=registry,
-    )
+    classifiers = {
+        axis: TensorFlowMovementClassifier(
+            model_path=Path(settings["classification"][axis]["model_path"]),
+            registry=registries[axis],
+        )
+        for axis in axes
+    }
+    confidence_thresholds = {
+        axis: settings["classification"][axis]["confidence_threshold"] for axis in axes
+    }
 
     input_backend = KeyboardInputBackend()
     action_mapper = ActionMapper(
@@ -79,15 +86,16 @@ def main() -> None:
     )
 
     event_bus = EventBus()
-    event_bus.subscribe("movement_detected", action_mapper.on_movement_detected)
+    for axis in axes:
+        event_bus.subscribe(f"{axis}_detected", lambda prediction, axis=axis: action_mapper.on_label_detected(axis, prediction))
 
     pipeline = RealtimePipeline(
         frame_source=frame_source,
         pose_estimator=pose_estimator,
         sequence_buffer=sequence_buffer,
-        classifier=classifier,
+        classifiers=classifiers,
         event_bus=event_bus,
-        confidence_threshold=settings["classification"]["confidence_threshold"],
+        confidence_thresholds=confidence_thresholds,
         feature_fn=build_feature_fn(settings["features"].get("feature_mode", "full")),
         window_fn=append_velocity if settings["features"].get("use_velocity", False) else None,
         show_preview=not args.no_preview,

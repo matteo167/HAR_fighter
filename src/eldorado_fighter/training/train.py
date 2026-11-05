@@ -23,7 +23,7 @@ from eldorado_fighter.training.model_factory import build_model
 logger = logging.getLogger(__name__)
 
 
-def run_training(settings: dict, registry: MovementRegistry) -> Path:
+def run_training(settings: dict, registry: MovementRegistry, axis: str) -> Path:
     features_cfg = settings["features"]
     dataset_cfg = settings["dataset"]
     training_cfg = settings["training"]
@@ -33,12 +33,13 @@ def run_training(settings: dict, registry: MovementRegistry) -> Path:
     X, y, clip_ids = load_dataset(
         keypoints_dir=Path(dataset_cfg["keypoints_dir"]),
         registry=registry,
+        axis=axis,
         sequence_length=features_cfg["sequence_length"],
         stride=features_cfg.get("stride", 1),
         feature_fn=build_feature_fn(feature_mode),
         window_fn=append_velocity if use_velocity else None,
     )
-    logger.info("Dataset carregado: %d amostras, %d classes", len(X), len(registry))
+    logger.info("Dataset carregado (eixo=%s): %d amostras, %d classes", axis, len(X), len(registry))
 
     # Split por CLIPE (não por janela): janelas de um mesmo clipe se
     # sobrepõem muito (sliding window), então um split aleatório por janela
@@ -79,7 +80,7 @@ def run_training(settings: dict, registry: MovementRegistry) -> Path:
         "\n%s", classification_report(y_val, y_pred, labels=present_labels, target_names=label_names, zero_division=0)
     )
 
-    output_dir = Path(training_cfg["output_dir"])
+    output_dir = Path(training_cfg["output_dir"]) / axis
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
     run_dir = output_dir / timestamp
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -88,6 +89,7 @@ def run_training(settings: dict, registry: MovementRegistry) -> Path:
     model.save(model_path)
 
     metadata = {
+        "axis": axis,
         "movement_names": list(registry.names),
         "sequence_length": X.shape[1],
         "num_landmarks": X.shape[2],

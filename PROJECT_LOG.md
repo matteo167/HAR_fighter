@@ -58,3 +58,64 @@ usuário executar os movimentos na câmera).
 3. Validar o controle em tempo real com `scripts/run_live.py` contra um
    emulador de Street Fighter II e calibrar `confidence_threshold` e
    `cooldown_seconds` em `config/settings.yaml`.
+
+---
+
+## 2026-11-05 — Etapa 1: Dois eixos simultâneos (movimentação + ação)
+
+**O que foi feito:**
+- `data/keypoints/` e `data/raw_videos/` (280 clipes gravados na v1) foram
+  movidos para `data/obsoleto/v1/`, preservando o histórico git dos
+  keypoints via `git mv`.
+- `config/movements.yaml` passou de uma lista única de movimentos para
+  dois catálogos independentes sob `axes`: `movement` (`idle`, `walk_left`,
+  `walk_right`) e `action` (`idle`, `crouch`, `jump`, `punch_*`, `kick_*`).
+  O campo `category` (não lido por nenhum código) foi removido.
+- `MovementRegistry.from_config(axis)`, `dataset/schema.KeypointSample`
+  (agora com `movement_label` + `action_label`), `DatasetRecorder.
+  record_clip`, `training/dataset_loader.load_dataset(axis=...)` e
+  `training/train.run_training(axis=...)` foram adaptados para o schema de
+  dois labels — cada clipe gravado é identificado pela combinação
+  `<movement>__<action>` e pode ser reaproveitado no treino dos dois eixos.
+- `RealtimePipeline` passou a receber um `MovementClassifier` por eixo
+  (`dict[str, MovementClassifier]`) e publica `movement_detected` /
+  `action_detected` separadamente a cada frame, sobre a MESMA sequência de
+  pose — captura, pose e buffer continuam únicos.
+- `ActionMapper` passou a indexar tecla segurada e cooldown de tap por
+  eixo (`on_label_detected(axis, prediction)`), permitindo duas teclas
+  seguradas ao mesmo tempo (uma por eixo) sem colisão entre as classes
+  `idle` dos dois eixos.
+- `scripts/run_live.py`, `train_model.py` (`--axis`), `record_dataset.py`
+  (`--movement`/`--action` independentes) e `extract_keypoints.py` foram
+  atualizados para o novo esquema.
+- Criado `scripts/migrate_legacy_dataset.py` (one-off) e executado: migrou
+  os 280 clipes de `data/obsoleto/v1/` para o novo schema de dois labels
+  (o eixo não gravado em cada clipe antigo foi marcado `idle`), deixando o
+  dataset existente imediatamente utilizável pelos dois classificadores.
+- `README.md` e `config/settings.yaml` atualizados para refletir os dois
+  eixos (`classification.movement.*` / `classification.action.*`,
+  `data/models/<axis>/...`).
+
+**Por quê:**
+- O jogador quer andar e atacar ao mesmo tempo (ex.: avançar socando), o
+  que é impossível com um único classificador softmax sobre todas as
+  classes — movimento e ação precisam ser sinais independentes.
+- Dois modelos independentes (em vez de um multi-head) foram escolhidos
+  por simplicidade de implementação/depuração, aceitando 2x inferência de
+  classificação — custo pequeno comparado ao YOLO-pose, que não duplica.
+- Migrar o dataset da v1 em vez de descartá-lo evita perder as 280
+  gravações já feitas; o risco conhecido é que elas só cobrem cada eixo
+  isoladamente — reconhecer combos vai exigir gravar amostras com os dois
+  eixos variando juntos (ver Roadmap no README).
+
+**Status:** Refatoração completa e verificada (treino dos dois eixos
+ponta-a-ponta contra o dataset migrado). **Não testado**: fluxo completo de
+webcam + teclado real (`scripts/run_live.py` interativo) — requer validação
+manual do usuário.
+
+**Próximos passos:**
+1. Validar `scripts/run_live.py` contra o emulador com os dois eixos.
+2. Gravar amostras de combo (`--movement` + `--action` juntos) para o
+   modelo de ação generalizar quando o jogador está se movendo.
+3. Recalibrar `confidence_threshold`/`cooldown_seconds` por eixo, se
+   necessário.

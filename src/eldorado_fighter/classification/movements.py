@@ -1,10 +1,13 @@
-"""Registro de movimentos (Registry pattern), construído a partir de
+"""Registro de classes de um eixo (Registry pattern), construído a partir de
 config/movements.yaml.
 
-Esta é a peça central da extensibilidade do projeto: adicionar um novo
-movimento no futuro (ex.: "defesa", "soco especial") é só editar o YAML.
-Nenhum outro módulo referencia nomes de movimento como strings soltas —
-todos usam `Movement`, obtido via `MovementRegistry`.
+O sistema tem dois eixos independentes e simultâneos — "movement"
+(deslocamento lateral) e "action" (postura/ataque) — cada um com seu
+próprio `MovementRegistry`, carregado via `MovementRegistry.from_config(axis)`.
+Esta é a peça central da extensibilidade do projeto: adicionar uma classe
+nova no futuro (ex.: "defesa") é só editar o eixo certo no YAML. Nenhum
+outro módulo referencia nomes de classe como strings soltas — todos usam
+`Movement`, obtido via `MovementRegistry`.
 """
 
 from __future__ import annotations
@@ -12,13 +15,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from eldorado_fighter.utils.config import load_movements
+from eldorado_fighter.utils.config import load_axis
 
 
 @dataclass(frozen=True)
 class Movement:
     name: str
-    category: str
     hold: bool
     game_keys: tuple[str, ...]
     description: str
@@ -32,12 +34,11 @@ class MovementRegistry:
         self._ordered = tuple(movements)
 
     @classmethod
-    def from_config(cls, path: Path | None = None) -> "MovementRegistry":
-        raw = load_movements(path)
+    def from_config(cls, axis: str, path: Path | None = None) -> "MovementRegistry":
+        raw = load_axis(axis, path)
         movements = [
             Movement(
                 name=entry["name"],
-                category=entry["category"],
                 hold=bool(entry.get("hold", False)),
                 game_keys=tuple(entry.get("game_keys", [])),
                 description=entry.get("description", ""),

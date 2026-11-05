@@ -24,8 +24,12 @@ features:
 
 classification:
   backend: tensorflow      # tensorflow | heuristic (fallback sem modelo treinado)
-  model_path: data/models/latest/model.keras
-  confidence_threshold: 0.6
+  movement:
+    model_path: data/models/movement/latest/model.keras
+    confidence_threshold: 0.6
+  action:
+    model_path: data/models/action/latest/model.keras
+    confidence_threshold: 0.6
 
 actions:
   input_backend: keyboard   # keyboard (pynput) | gamepad (futuro, não suportado no macOS)

@@ -1,6 +1,13 @@
-"""Carrega o dataset de keypoints (data/keypoints/<label>/*.npz) e gera
-janelas de sequência idênticas às usadas em tempo real (SequenceBuffer),
-para que a distribuição de treino bata com a de inferência.
+"""Carrega o dataset de keypoints (data/keypoints/<movement>__<action>/*.npz)
+e gera janelas de sequência idênticas às usadas em tempo real
+(SequenceBuffer), para que a distribuição de treino bata com a de
+inferência.
+
+Cada amostra guarda um label por eixo (ver dataset.schema.KeypointSample).
+`load_dataset` varre TODAS as amostras independente da pasta e lê, de
+dentro de cada .npz, o label do eixo pedido (`axis`) — isso é o que permite
+que um clipe combinado (ex.: `walk_left__punch_light`) seja reaproveitado
+tanto no treino do eixo "movement" quanto no do eixo "action".
 """
 
 from __future__ import annotations
@@ -52,14 +59,16 @@ def _windows_from_clip(
 def load_dataset(
     keypoints_dir: Path,
     registry: MovementRegistry,
+    axis: str,
     sequence_length: int,
     stride: int = 1,
     feature_fn: FeatureFn = normalize_landmarks,
     window_fn: WindowFn | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Retorna (X, y, clip_ids): X com shape (N, sequence_length, num_landmarks, 3),
-    y com shape (N,) contendo o índice do movimento em `registry`, clip_ids
-    com shape (N,) identificando de qual clipe cada janela veio.
+    y com shape (N,) contendo o índice da classe de `axis` ("movement" ou
+    "action") em `registry`, clip_ids com shape (N,) identificando de qual
+    clipe cada janela veio.
 
     `clip_ids` existe para permitir split treino/validação por CLIPE em vez
     de por janela: janelas do mesmo clipe se sobrepõem bastante (sliding
@@ -77,19 +86,16 @@ def load_dataset(
     all_clip_ids: list[int] = []
 
     clip_id = 0
-    for movement in registry:
-        label_dir = Path(keypoints_dir) / movement.name
-        if not label_dir.exists():
-            continue
+    for sample_path in sorted(Path(keypoints_dir).glob("*/*.npz")):
+        sample = load_sample(sample_path)
+        label_name = sample.movement_label if axis == "movement" else sample.action_label
+        label_index = registry.index_of(label_name)
 
-        label_index = registry.index_of(movement.name)
-        for sample_path in sorted(label_dir.glob("*.npz")):
-            sample = load_sample(sample_path)
-            windows = _windows_from_clip(sample.keypoints, sequence_length, stride, feature_fn, window_fn)
-            all_windows.append(windows)
-            all_labels.extend([label_index] * len(windows))
-            all_clip_ids.extend([clip_id] * len(windows))
-            clip_id += 1
+        windows = _windows_from_clip(sample.keypoints, sequence_length, stride, feature_fn, window_fn)
+        all_windows.append(windows)
+        all_labels.extend([label_index] * len(windows))
+        all_clip_ids.extend([clip_id] * len(windows))
+        clip_id += 1
 
     if not all_windows:
         raise RuntimeError(

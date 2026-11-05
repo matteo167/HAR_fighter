@@ -1,80 +1,81 @@
-# Catálogo de movimentos reconhecidos pelo sistema.
-# Este arquivo é a fonte única de verdade dos movimentos: para adicionar um
-# novo movimento no futuro (ex.: "soco especial", "defesa"), basta adicionar
-# uma entrada aqui — nenhum código precisa ser alterado (Open/Closed Principle).
+# Catálogo de classes reconhecidas pelo sistema, dividido em dois eixos
+# INDEPENDENTES e SIMULTÂNEOS (dois classificadores rodando em paralelo
+# sobre a mesma sequência de pose — ver pipeline/realtime_pipeline.py):
 #
-# category:
-#   - direction: movimentos de deslocamento (podem ficar "segurados")
-#   - stance:    posturas (podem ficar "seguradas")
-#   - attack:    ações instantâneas (tap, não seguram tecla)
+#   movement -> deslocamento lateral (parado / esquerda / direita)
+#   action   -> postura/ataque (parado / agachado / pulo / socos / chutes)
 #
-# game_keys: teclas que o backend de input deve emular para o emulador/jogo.
-# hold: true  -> a tecla é pressionada enquanto o movimento for detectado
-# hold: false -> a tecla é "tocada" (press + release rápido) a cada detecção
+# Cada eixo tem sua PRÓPRIA classe "idle" (neutro daquele eixo, não do
+# personagem como um todo) — por isso dá pra andar para a esquerda E socar
+# ao mesmo tempo: são publicados em eventos separados
+# (movement_detected / action_detected).
+#
+# Para adicionar uma classe nova (ex.: "defesa" no eixo action), basta
+# adicionar uma entrada no eixo certo aqui — nenhum código precisa mudar.
+#
+# hold: true  -> tecla pressionada enquanto a classe daquele eixo for detectada
+# hold: false -> tecla "tocada" (tap) a cada detecção
+# game_keys: teclas emuladas para o jogo/emulador
 
-movements:
-  - name: idle
-    category: stance
-    hold: false
-    game_keys: []
-    description: "Jogador parado, posição neutra."
+axes:
+  movement:
+    - name: idle
+      hold: false
+      game_keys: []
+      description: "Sem deslocamento lateral."
 
-  - name: walk_right
-    category: direction
-    hold: true
-    game_keys: ["right"]
-    description: "Caminhar para a direita."
+    - name: walk_left
+      hold: true
+      game_keys: ["left"]
+      description: "Caminhar para a esquerda."
 
-  - name: walk_left
-    category: direction
-    hold: true
-    game_keys: ["left"]
-    description: "Caminhar para a esquerda."
+    - name: walk_right
+      hold: true
+      game_keys: ["right"]
+      description: "Caminhar para a direita."
 
-  - name: crouch
-    category: stance
-    hold: true
-    game_keys: ["down"]
-    description: "Agachado."
+  action:
+    - name: idle
+      hold: false
+      game_keys: []
+      description: "Nenhuma ação (sem postura especial nem ataque)."
 
-  - name: jump
-    category: attack
-    hold: false
-    game_keys: ["up"]
-    description: "Pulo."
+    - name: crouch
+      hold: true
+      game_keys: ["down"]
+      description: "Agachado."
 
-  - name: punch_light
-    category: attack
-    hold: false
-    game_keys: ["a"]
-    description: "Soco fraco (jab)."
+    - name: jump
+      hold: false
+      game_keys: ["up"]
+      description: "Pulo."
 
-  - name: punch_medium
-    category: attack
-    hold: false
-    game_keys: ["s"]
-    description: "Soco médio."
+    - name: punch_light
+      hold: false
+      game_keys: ["a"]
+      description: "Soco fraco (jab)."
 
-  - name: punch_heavy
-    category: attack
-    hold: false
-    game_keys: ["d"]
-    description: "Soco forte."
+    - name: punch_medium
+      hold: false
+      game_keys: ["s"]
+      description: "Soco médio."
 
-  - name: kick_light
-    category: attack
-    hold: false
-    game_keys: ["z"]
-    description: "Chute fraco."
+    - name: punch_heavy
+      hold: false
+      game_keys: ["d"]
+      description: "Soco forte."
 
-  - name: kick_medium
-    category: attack
-    hold: false
-    game_keys: ["x"]
-    description: "Chute médio."
+    - name: kick_light
+      hold: false
+      game_keys: ["z"]
+      description: "Chute fraco."
 
-  - name: kick_heavy
-    category: attack
-    hold: false
-    game_keys: ["c"]
-    description: "Chute forte."
+    - name: kick_medium
+      hold: false
+      game_keys: ["x"]
+      description: "Chute médio."
+
+    - name: kick_heavy
+      hold: false
+      game_keys: ["c"]
+      description: "Chute forte."

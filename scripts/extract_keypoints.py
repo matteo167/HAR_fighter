@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-"""Reprocessa os vídeos brutos (data/raw_videos) extraindo keypoints para
-data/keypoints. Útil para regenerar o dataset de keypoints após trocar ou
-melhorar o PoseEstimator, sem precisar regravar os vídeos originais.
+"""Reprocessa os vídeos brutos (data/raw_videos/<movement>__<action>/) extraindo
+keypoints para data/keypoints. Útil para regenerar o dataset de keypoints
+após trocar ou melhorar o PoseEstimator, sem precisar regravar os vídeos
+originais. Os dois labels de cada clipe são lidos do nome da pasta.
 
 Uso:
     python scripts/extract_keypoints.py
-    python scripts/extract_keypoints.py --movement punch_light
+    python scripts/extract_keypoints.py --combo idle__punch_light
 """
 
 from __future__ import annotations
@@ -42,17 +43,21 @@ def extract_from_video(video_path: Path, pose_estimator: YoloPoseEstimator, fps:
                 keypoints_frames.append(pose.landmarks)
                 visibility_frames.append(pose.visibility)
 
+    movement_label, action_label = video_path.parent.name.split("__", 1)
     return KeypointSample(
         keypoints=np.stack(keypoints_frames, axis=0),
         visibility=np.stack(visibility_frames, axis=0),
-        label=video_path.parent.name,
+        movement_label=movement_label,
+        action_label=action_label,
         fps=fps,
     )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--movement", default=None, help="Reprocessar apenas este movimento")
+    parser.add_argument(
+        "--combo", default=None, help="Reprocessar apenas esta pasta (<movement>__<action>)"
+    )
     args = parser.parse_args()
 
     settings = load_settings()
@@ -63,7 +68,7 @@ def main() -> None:
     fps = settings["capture"]["fps"]
 
     movement_dirs = (
-        [raw_videos_dir / args.movement] if args.movement else sorted(raw_videos_dir.iterdir())
+        [raw_videos_dir / args.combo] if args.combo else sorted(raw_videos_dir.iterdir())
     )
 
     pose_estimator = YoloPoseEstimator(

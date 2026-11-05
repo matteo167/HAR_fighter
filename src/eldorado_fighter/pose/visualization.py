@@ -52,25 +52,28 @@ def draw_pose(frame: np.ndarray, pose: PoseResult | None) -> np.ndarray:
     return annotated
 
 
-def draw_prediction_label(
+def draw_prediction_labels(
     frame: np.ndarray,
-    movement_name: str | None,
-    confidence: float,
-    confidence_threshold: float,
+    predictions: list[tuple[str, str | None, float, float]],
 ) -> np.ndarray:
-    """Escreve o movimento detectado no canto superior do frame — traduzido
-    para "ESQUERDA"/"DIREITA" quando é um dos movimentos de caminhada, ou o
-    nome do movimento em caixa alta para os demais.
+    """Escreve uma linha por eixo no canto superior do frame — um eixo por
+    item de `predictions`: (nome_do_eixo, nome_da_classe, confiança,
+    confidence_threshold). O nome da classe é traduzido para
+    "ESQUERDA"/"DIREITA" quando é um dos movimentos de caminhada, ou escrito
+    em caixa alta para os demais.
 
     Em cinza quando não há pessoa detectada ou a confiança está abaixo do
-    limiar (mesmo caso em que o pipeline não dispara a ação no jogo).
+    limiar daquele eixo (mesmo caso em que o pipeline não dispara a ação
+    correspondente no jogo).
     """
-    if movement_name is None:
-        text, color = "...", _LOW_CONFIDENCE_COLOR
-    else:
-        label = _DIRECTION_LABELS.get(movement_name, movement_name.upper())
-        color = _DETECTED_COLOR if confidence >= confidence_threshold else _LOW_CONFIDENCE_COLOR
-        text = f"{label} ({confidence:.0%})"
+    for row, (axis_name, class_name, confidence, confidence_threshold) in enumerate(predictions):
+        if class_name is None:
+            text, color = f"{axis_name}: ...", _LOW_CONFIDENCE_COLOR
+        else:
+            label = _DIRECTION_LABELS.get(class_name, class_name.upper())
+            color = _DETECTED_COLOR if confidence >= confidence_threshold else _LOW_CONFIDENCE_COLOR
+            text = f"{axis_name}: {label} ({confidence:.0%})"
 
-    cv2.putText(frame, text, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+        y = 40 + row * 40
+        cv2.putText(frame, text, (20, y), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
     return frame
