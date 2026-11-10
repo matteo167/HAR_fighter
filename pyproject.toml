@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "har-fighter"
 version = "0.1.0"
 description = "Controle de personagens de Street Fighter II via visão computacional (YOLOv8-Pose + OpenCV + TensorFlow)."
+license = "LicenseRef-CC-BY-NC-4.0"
 requires-python = ">=3.10"
 
 [tool.setuptools.packages.find]

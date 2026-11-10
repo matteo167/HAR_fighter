@@ -253,3 +253,11 @@ linha por eixo (movimentação e ação).
 
 Cada etapa efetivamente executada é registrada em
 [`PROJECT_LOG.md`](PROJECT_LOG.md).
+
+## Licença
+
+Este projeto é licenciado sob **CC BY-NC 4.0** (Creative Commons
+Attribution-NonCommercial 4.0 International) — uso comercial proibido e
+créditos ao autor original (matteo167) são obrigatórios em qualquer
+cópia, adaptação ou redistribuição. Veja o arquivo [`LICENSE`](LICENSE)
+para o texto completo.
